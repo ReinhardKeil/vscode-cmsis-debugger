@@ -56,12 +56,13 @@ The **Run and Debug** view provides:
 > **TIP**<br>
 > Click on a _line number badge_ to navigate to the source code line.
 
-Other debugger specific views:
+Other debugger specific views or features:
 
 - [**Disassembly**](#disassembly) shows assembly instructions and supports run control, for example with stepping and breakpoints.
 - [**Debug Console**](#debug-console) lists debug output messages and allows to enter an expressions or GDB commands.
 - [**Peripherals**](#peripherals) show the device peripheral registers and allows to change their values.
 - [**Serial Monitor**](#serial-monitor) uses serial or TCP communication to interact with application I/O functions (`printf`, `getc`, etc.).
+- [**CPU Time**](#cpu-time) shows execution timing and statistics of the past five breakpoints.
 
 ### Debug toolbar
 
@@ -213,6 +214,22 @@ To add a logpoint, right-click in the editor left margin and select Add Logpoint
 Just like regular breakpoints, logpoints can be enabled or disabled and can also be controlled by a condition
 and/or hit count.
 
+### CPU Time
+
+Most Arm Cortex-M processors (except Cortex-M0/M0+/M23) include a `DWT->CYCCNT` register that counts CPU states. In combination with the CMSIS variable [`SystemCoreClock`](https://arm-software.github.io/CMSIS_6/latest/Core/group__system__init__gr.html) the CMSIS Debugger calculates execution time an displays it along with the selected processor core the CPU Time Status bar.  A Click on the CPU Time Status bar opens the related [VS Code command palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette).
+
+Command	       | Description
+:--------------|:-------------
+CPU Time       | Print CPU execution time and history of past program stops.
+Reset CPU Time | Reset CPU execution time and history. Set new reference time (zero point).
+
+![CPU Time](images/CPU_Time.png)
+
+> 📝 **Notes:**  
+> - The first program stop (typically at function `main`) is the initial reference time (zero point).
+> - `DWT->CYCCNT` is a 32-bit register incremented with [`SystemCoreClock`](https://arm-software.github.io/CMSIS_6/latest/Core/group__system__init__gr.html) frequency. The time calculation copes with one overflow between program stops. Multiple overflows between program stops deliver wrong time information.
+> - Each processor in a multi-processor system has and independent `DWT->CYCCNT` register.
+
 ### Peripherals
 
 The **Peripherals** view shows the device peripheral registers and allows to change their values. It uses the CMSIS-SVD files that are provided by silicon vendors and distributed as part of the CMSIS Device Family Packs (DFP).
@@ -322,7 +339,7 @@ warning: Loadable section "RW_RAM0" outside of ELF segments
 ```
 
 **Possible Reason**: `arm-none-eabi-gdb` does not correctly load ELF program segments due to the way that
-Arm Compiler 6 generates section and program header information when scatterloading is used.
+Arm Compiler 6 generates section and program header information when scatter loading is used.
 
 **Workaround**: You can generate a HEX file for the program download, and the ELF file for debug purposes only.
 The following steps are required if you build a [CSolution](https://open-cmsis-pack.github.io/cmsis-toolbox/build-overview/)-based
